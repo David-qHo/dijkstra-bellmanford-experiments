@@ -76,7 +76,7 @@ def bellman_ford(G, source):
                     pred[neighbour] = node
     return dist
 
-
+# Compute total 'cost' of traversing graph from source
 def total_dist(dist):
     total = 0
     for key in dist.keys():
@@ -90,7 +90,7 @@ def create_random_complete_graph(n,upper):
     for i in range(n):
         for j in range(n):
             if i != j:
-                G.add_edge(i,j,random.randint(1,upper))
+                G.add_edge(i,j,random.randint(1,upper)) # Add edge between i, j with random weight 
     return G
 
 
@@ -129,7 +129,7 @@ def dijkstra_approx(G, source,k):
     Q = min_heap.MinHeap([])
     nodes = list(G.adj.keys())
 
-    num_relax = {}
+    num_relax = {} # Store amount each node is able to be relaxed
 
     #Initialize priority queue/heap and distances
     for node in nodes:
@@ -156,20 +156,21 @@ def dijkstra_approx(G, source,k):
             # This is the relaxation 
             if dist[current_node] + G.w(current_node, neighbour) < dist[neighbour]:
                 if num_relax[neighbour] > 0: # There is still available room to relax this node 
-                    num_relax[neighbour] -= 1
+                    num_relax[neighbour] -= 1 
                     # Update neighbour node with new shortest distance 
                     Q.decrease_key(neighbour, dist[current_node] + G.w(current_node, neighbour))
                     dist[neighbour] = dist[current_node] + G.w(current_node, neighbour)
                     pred[neighbour] = current_node
     return dist
 
+# Relax each node at most k times
 def bellman_ford_approx(G, source,k):
     pred = {} #Predecessor dictionary. Isn't returned, but here for your understanding
     dist = {} #Distance dictionary
     nodes = list(G.adj.keys())
 
-    num_relax = {} 
-
+    num_relax = {} # Store amount each node can be relaxed
+ 
     #Initialize distances
     for node in nodes:
         dist[node] = float("inf")
@@ -182,24 +183,24 @@ def bellman_ford_approx(G, source,k):
             for neighbour in G.adj[node]:
 
                 if dist[neighbour] > dist[node] + G.w(node, neighbour):
-                    if num_relax[neighbour] > 0: 
+                    if num_relax[neighbour] > 0:  # Still available room to relax this node
                         num_relax[neighbour] -= 1
                         dist[neighbour] = dist[node] + G.w(node, neighbour)
                         pred[neighbour] = node
     return dist
 
 
-g = DirectedWeightedGraph()
+# g = DirectedWeightedGraph()
 
-g.add_node(0) 
-g.add_node(1)
-g.add_node(2) 
+# g.add_node(0) 
+# g.add_node(1)
+# g.add_node(2) 
 
-g.add_edge(0,1,1)
-g.add_edge(0,2,100)
-g.add_edge(1,2,1)
+# g.add_edge(0,1,1)
+# g.add_edge(0,2,100)
+# g.add_edge(1,2,1)
 
-print(dijkstra_approx(g,0,30000))
+# print(dijkstra_approx(g,0,30000))
 
 
 
@@ -207,4 +208,42 @@ print(dijkstra_approx(g,0,30000))
 # number of nodes n
 # graph density / number of edges m
 # relaxation limit k
-# outcome measure: runtime, total_dist(dist), or error vs the exact algorith
+# outcome measure: runtime, total_dist(dist), or error vs the exact algorithm
+
+# How number of nodes affects approximations 
+# Fix number of relaxations to some k, and number of edges to some m
+# To fix edges use complete random graph function
+def experiment1(): 
+
+    # 1000 graphs, sizes from 1 to 1000 
+
+    max_nodes = 100 
+    num_graphs = 5
+
+
+    graphs = {}
+    for i in range(1,max_nodes+1): 
+        graphs[i] = [] # initialize empty graphs 
+        for _ in range(num_graphs): # Make 5 graphs for every number of nodes
+            graphs[i].append(create_random_complete_graph(i,2 * i))
+
+    # Compute average total_dist of all 5 graphs
+        
+        
+    total_dists_dijkstra = []
+    total_dists_bellman= []
+
+
+    # Put max weight as twice number of nodes, avoid duplicates
+    for i in range(1,max_nodes,10): 
+        graphs.append(create_random_complete_graph(i,2 * i))
+
+
+    for graph in graphs: 
+        total_dists_dijkstra.append(total_dist(dijkstra_approx(graph,0,)))
+
+
+    print(graphs) 
+
+
+experiment1()

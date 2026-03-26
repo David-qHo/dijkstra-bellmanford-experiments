@@ -3,6 +3,8 @@ import random
 import matplotlib.pyplot as plt
 import math 
 from itertools import permutations 
+import timeit
+import numpy as np
 
 
 class DirectedWeightedGraph:
@@ -451,5 +453,50 @@ def experiment3():
 
 
 
+def mysteryExperiment():
 
-experiment3()
+    min_nodes = 5
+    max_nodes = 200
+    max_cost = 200
+    grapharr = []
+
+    for i in range(min_nodes,max_nodes):
+        g = create_random_complete_graph(i,max_cost)
+        grapharr.append(g)
+
+    mysteryData = []
+    mysteryTotal = 0
+
+    for g in grapharr:
+        start = timeit.default_timer()
+        mystery(g)
+        end = timeit.default_timer() - start
+        mysteryTotal += end
+        mysteryData.append(end)
+
+    x = np.array(range(min_nodes,max_nodes))
+    y = np.array(mysteryData)
+
+    log_x = np.log(x)
+    log_y = np.log(y)
+
+    # m here is our slope of the log log plot line
+    m, c = np.polyfit(log_x, log_y, 1)
+
+
+    plt.loglog(range(min_nodes,max_nodes), mysteryData, color='blue')
+
+
+    plt.xlabel("Number of Graph's Nodes")
+    plt.ylabel("Time (s)")
+    plt.title("Runtime Analysis of Mystery Function Slope = " + str(m))
+    plt.show()
+
+    return
+
+
+mysteryExperiment()
+
+
+
+

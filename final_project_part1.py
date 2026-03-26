@@ -1,6 +1,10 @@
 import min_heap
 import random
 import matplotlib.pyplot as plt
+import math 
+from itertools import permutations 
+
+import matplotlib.pyplot as plt
 
 class DirectedWeightedGraph:
 
@@ -301,3 +305,131 @@ def experiment3():
 
 
 experiment3()
+    td_dij_app = []  # Store approximation of dijkstra
+    td_bel_app = []   # Store approximation of bellman
+
+    td_short = []       # Store actual cost of shortest path
+    # td_bel = []       # Store actual cost of shortest path
+
+    # key represents number of nodes
+    for key in graphs.keys(): # For each number of nodes
+        # num_nodes = graphs[key][0].number_of_nodes() # Get number of nodes for this graph
+
+        # Initialize sums for this graph size
+        dij_appS = 0 
+        bel_appS = 0 
+        shortestS = 0 
+        # belS = 0
+
+        for graph in graphs[key]: # For each graph in this 
+            # Compute approximation 
+            dij_appS += total_dist(dijkstra_approx(graph,0, 10)) 
+            bel_appS += total_dist(bellman_ford_approx(graph,0, 10))
+
+            # Compute actual 
+            shortestS += total_dist(dijkstra(graph,0))
+            # belS += total_dist(bellman_ford(graph,0))
+
+        # Divide by num_graphs to compute average
+        td_dij_app.append(dij_appS/num_graphs)
+        td_bel_app.append(bel_appS/num_graphs)
+        td_short.append(shortestS/num_graphs)
+        # td_bel.append(belS/num_graphs)
+
+    
+    plt.plot(x,td_dij_app, label = "Dijkstra Approx")
+    plt.plot(x,td_bel_app, label = "Bellman Approx")
+    plt.plot(x,td_short, label = "Actual")
+    # plt.plot(x,td_bel, label = "Bellman-Ford")
+
+
+    plt.xlabel("Number of nodes")
+    plt.ylabel("total distance")
+    plt.title("Shortest path algorithms and their approximations (k = 10)")
+    plt.legend()
+
+    plt.show()
+        
+    print(td_dij_app) 
+    print(td_bel_app)
+
+
+
+# Vary number of edges and see how that impacts approximations 
+def experiment2(): 
+    nodes = 50      # Number of nodes for every graph 
+    max_edges = nodes * (nodes - 1) # Max number of edges (n Choose 2)
+    num_graphs = 5   # Number of graphs per # of edges
+
+ 
+
+    graphs = {} 
+    x = [] 
+
+  
+
+    for i in range(1,max_edges,100): 
+        # print(f"Generating {i}")
+        x.append(i)
+        graphs[i] = [] # initialize empty graphs 
+        for _ in range(num_graphs): # Make 5 graphs for every number of nodes
+            # Put max-weight as 2 * # of nodes, avoid duplicates
+            graphs[i].append(create_random_graph(nodes,i, 2 * nodes)) 
+
+
+    # Compute average total_dist of all 5 graphs
+        
+        
+    td_dij_app = []  # Store approximation of dijkstra
+    td_bel_app = []   # Store approximation of bellman
+
+    td_short = []       # Store actual cost of shortest path
+    # td_bel = []       # Store actual cost of shortest path
+
+    print(graphs.keys())
+    # key represents number of edges
+    for key in graphs.keys(): # For each number of nodes
+        # print(f"Doing edge: {key}")
+        
+
+        # Initialize sums for this graph size
+        dij_appS = 0 
+        bel_appS = 0 
+        shortestS = 0 
+        # belS = 0
+
+        for graph in graphs[key]: # For each graph in this 
+            # Compute approximation 
+            dij_appS += total_dist(dijkstra_approx(graph,0, 10)) 
+            bel_appS += total_dist(bellman_ford_approx(graph,0, 10))
+
+            # Compute actual 
+            shortestS += total_dist(dijkstra(graph,0))
+
+        # Divide by num_graphs to compute average
+        td_dij_app.append(dij_appS/num_graphs)
+        td_bel_app.append(bel_appS/num_graphs)
+        td_short.append(shortestS/num_graphs)
+
+    
+    plt.plot(x,td_dij_app, label = "Dijkstra Approx")
+    plt.plot(x,td_bel_app, label = "Bellman Approx")
+    plt.plot(x,td_short, label = "Actual")
+    # plt.plot(x,td_bel, label = "Bellman-Ford")
+
+
+    plt.xlabel("Number of edges")
+    plt.ylabel("total distance")
+    plt.title("Shortest path algorithms and their approximations (k = 10)")
+    plt.legend()
+
+    plt.show()
+        
+    print(td_dij_app) 
+    print(td_bel_app)
+
+
+
+
+
+experiment2()

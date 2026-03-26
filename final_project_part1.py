@@ -1,5 +1,6 @@
 import min_heap
 import random
+import matplotlib.pyplot as plt
 
 class DirectedWeightedGraph:
 
@@ -246,4 +247,57 @@ def experiment1():
     print(graphs) 
 
 
-experiment1()
+def experiment3(): 
+
+    max_nodes = 20
+    max_cost = 60
+    number_graphs = 5
+    grapharr = []
+
+    for i in range(number_graphs):
+        g = create_random_complete_graph(max_nodes,max_cost)
+        grapharr.append(g)
+
+    
+    # Compute average total_dist of all 10 graphs
+    total_dists_dijkstra = []
+    total_dists_bellman= []
+    total_dists_actual= []
+
+
+    for k in range(1,20):
+        sum1, sum2, sum3 = 0, 0, 0
+        for graph in grapharr: 
+            sum1 += total_dist(dijkstra_approx(graph,0,k))
+        total_dists_dijkstra.append(sum1/number_graphs)
+
+        for graph in grapharr: 
+            sum2 += total_dist(bellman_ford_approx(graph,0,k))
+        total_dists_bellman.append(sum2/number_graphs)
+
+
+    for graph in grapharr: 
+        sum3 += total_dist(dijkstra(graph,0,))
+
+    for k in range (1,20):
+        total_dists_actual.append(sum3/number_graphs)
+
+
+    plt.plot(range(1,20), total_dists_dijkstra, color='blue', label = "Dijksta Approx")
+    plt.plot(range(1,20), total_dists_bellman, color='red', label = "Bellman Approx")
+    plt.plot(range(1,20), total_dists_actual, color='green', label = "Actual")
+
+    plt.xlabel("K values")
+    plt.ylabel("Distance")
+    plt.title("Minimum Distance Approximations by K Value")
+    plt.legend()
+    plt.show()
+
+    print(total_dists_dijkstra) 
+    print(total_dists_bellman) 
+    print(total_dists_actual) 
+
+
+
+
+experiment3()

@@ -127,6 +127,47 @@ def init_d(G):
 
 # ******* OUR CODE ******* # 
 
+def a_star(G, s, d, h):
+    pred = {} 
+    dist = {} 
+    Q = min_heap.MinHeap([])
+    nodes = list(G.adj.keys())
+
+    for node in nodes:
+        dist[node] = float("inf")
+        priority = float("inf") if node != s else h[s]
+        Q.insert(min_heap.Element(node, priority))
+    
+    dist[s] = 0
+
+    while not Q.is_empty():
+        current_element = Q.extract_min()
+        current_node = current_element.value
+        
+        if current_node == d:
+            break
+
+        for neighbour in G.adj[current_node]:
+            new_g = dist[current_node] + G.w(current_node, neighbour)
+            
+            if new_g < dist[neighbour]:
+                dist[neighbour] = new_g
+                pred[neighbour] = current_node
+                f_score = new_g + h[neighbour]
+                Q.decrease_key(neighbour, f_score)
+
+    path = []
+    curr = d
+    while curr in pred:
+        path.append(curr)
+        curr = pred[curr]
+    if curr == s:
+        path.append(s)
+    
+    path.reverse()
+    
+    return pred, path
+
 
 # Relax each node at most k times
 def dijkstra_approx(G, source,k):

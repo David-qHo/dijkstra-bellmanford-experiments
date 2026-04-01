@@ -546,10 +546,16 @@ def mysteryExperiment():
 
 with open('data/london_stations.csv', mode='r', newline='', encoding='utf-8') as file:
     csv_reader = csv.DictReader(file)
-    g = part3_4.HeuristicGraph()
+
+    size = sum(1 for row in file) - 1
+    
+    g = part3_4.HeuristicGraph(size)
+
+    file.seek(0)
 
     for row in csv_reader:
         g.add_node(int(row['id']),(float(row['latitude']),float(row['longitude'])))
+    
 
 with open('data/london_connections.csv', mode='r', newline='', encoding='utf-8') as file:
     csv_reader = csv.DictReader(file)
@@ -557,20 +563,66 @@ with open('data/london_connections.csv', mode='r', newline='', encoding='utf-8')
         g.add_edge(int(row['station1']),int(row['station2']),int(row['time']))
 
 
-#print(g.adj)
 
 
 #testing dijsktra's algorithm
-dict1 = dijkstra(g,6)
-dist1 = total_dist(dict1)
-print(dist1)
+# dict1 = dijkstra(g,6)
+# dist1 = total_dist(dict1)
+# print(dict1)
 
-#testing A* algorithm (old)
-# h = part3_4.compute_heuristic(g,303)
-# dict2, pred = a_star(g,6,303,h)
-# dist2 = total_dist(dict2)
-# print(dist2)
+#testing A* algorithm 
+# g.compute_heuristic(303)
+# h = g.get_heuristic()
+# pred, dict2 = a_star(g,6,303,h)
+# print(dict2)
 
-# for key in dict.keys():
-#     if dict[key] != float("inf"):
-#         print(dict[key])
+
+def experiment4():
+    distances = []
+    dijkstra_times = []
+    a_star_times = []
+    dijkstra_total = 0
+    a_star_total = 0
+
+    for source in range(50,int((size + 1)/2)):
+
+        start = timeit.default_timer()
+        dijkstra(g,source)
+        end = timeit.default_timer() - start
+        dijkstra_total = end
+
+        for target in range(50,int((size + 1)/2)):
+            g.compute_heuristic(target)
+            h = g.get_heuristic()
+
+            start = timeit.default_timer()
+            pred, path = a_star(g,source,target,h)
+            end = timeit.default_timer() - start
+            a_star_total = end
+
+            total_distance = 0
+            for i in range(len(path) - 1):
+                u = path[i]
+                v = path[i+1]
+                total_distance += g.w(u, v)
+
+            dijkstra_times.append(dijkstra_total)
+            a_star_times.append(a_star_total)
+            distances.append(total_distance)
+
+
+    plt.figure(figsize=(12, 6))
+    
+    plt.scatter(distances, dijkstra_times, color='blue', label="Dijkstra", alpha=0.6)
+    plt.scatter(distances, a_star_times, color='red', label="A*", alpha=0.6)
+
+    # plt.plot(pairs, dijkstra_times, color='blue', label = "Dijksta")
+    # plt.plot(pairs, a_star_times, color='red', label = "A*")
+
+    plt.xlabel("Distance (source to target)")
+    plt.ylabel("Times (s)")
+    plt.title("Runtime by Distance to Target Node")
+    plt.legend()
+    plt.show()
+
+experiment4()

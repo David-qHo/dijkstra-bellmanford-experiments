@@ -91,7 +91,7 @@ class HeuristicGraph(WeightedGraph):
     def compute_heuristic(self,target): 
         #calculates the euclidian distance from each node to the target node and returns a hueristic function
         for node in list(self.adj.keys()):
-            self.heuristic[node] = math.sqrt((self.values[target][0] - G.values[node][0])**2 + (self.values[target][1] - self.values[node][1])**2)
+            self.heuristic[node] = 25*math.sqrt((self.values[target][0] - self.values[node][0])**2 + (self.values[target][1] - self.values[node][1])**2)
 
         
 

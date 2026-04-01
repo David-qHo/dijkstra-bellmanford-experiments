@@ -5,6 +5,8 @@ import math
 from itertools import permutations 
 import timeit
 import numpy as np
+import csv
+import part3_4
 
 
 class DirectedWeightedGraph:
@@ -536,8 +538,39 @@ def mysteryExperiment():
     return
 
 
-mysteryExperiment()
+# mysteryExperiment()
 
 
+# ************* Reading the csv files *************************
 
 
+with open('data/london_stations.csv', mode='r', newline='', encoding='utf-8') as file:
+    csv_reader = csv.DictReader(file)
+    g = part3_4.HeuristicGraph()
+
+    for row in csv_reader:
+        g.add_node(int(row['id']),(float(row['latitude']),float(row['longitude'])))
+
+with open('data/london_connections.csv', mode='r', newline='', encoding='utf-8') as file:
+    csv_reader = csv.DictReader(file)
+    for row in csv_reader:
+        g.add_edge(int(row['station1']),int(row['station2']),int(row['time']))
+
+
+#print(g.adj)
+
+
+#testing dijsktra's algorithm
+dict1 = dijkstra(g,6)
+dist1 = total_dist(dict1)
+print(dist1)
+
+#testing A* algorithm (old)
+# h = part3_4.compute_heuristic(g,303)
+# dict2, pred = a_star(g,6,303,h)
+# dist2 = total_dist(dict2)
+# print(dist2)
+
+# for key in dict.keys():
+#     if dict[key] != float("inf"):
+#         print(dict[key])

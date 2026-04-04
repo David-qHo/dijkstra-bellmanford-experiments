@@ -831,4 +831,9 @@ def part3_2(g):
 
 
 
-part3_2(g)
+#running the experiments
+#experiment1()
+#experiment2()
+#experiment3()
+#experiment4()
+#part3_2(g)

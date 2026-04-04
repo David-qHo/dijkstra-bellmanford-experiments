@@ -1,5 +1,6 @@
 import math 
 import min_heap
+from abc import ABC, abstractmethod # Used for abstract classes
 
 #Undirected graph using an adjacency list
 class Graph:
@@ -79,21 +80,22 @@ class HeuristicGraph(WeightedGraph):
     # Takes a weighted graph and target as argument
     def __init__(self,n): 
         super().__init__()
-        self.heuristic = {}   # Initialize dictionary
+        self.__heuristic = {}   # Initialize dictionary as private field
 
 
         for i in range(1,n+1): 
-            self.heuristic[i] = float("inf")
+            self.__heuristic[i] = float("inf")
 
 
     def get_heuristic(self): 
-        return self.heuristic
+        return self.__heuristic
     
 
     def compute_heuristic(self,target): 
+        h = self.get_heuristic() # Get heuristic 
         #calculates the euclidian distance from each node to the target node and returns a hueristic function
         for node in list(self.adj.keys()):
-            self.heuristic[node] = 25*math.sqrt((self.values[target][0] - self.values[node][0])**2 + (self.values[target][1] - self.values[node][1])**2)
+            h[node] = 25*math.sqrt((self.values[target][0] - self.values[node][0])**2 + (self.values[target][1] - self.values[node][1])**2)
 
         
 
@@ -129,12 +131,10 @@ class ShortPathFinder:
 
 
 # Abstract class
-class SPAlgorithm:
-
-    def __init__(self): 
-        pass 
+class SPAlgorithm(ABC):
 
     # Override method in subclasses
+    @abstractmethod
     def calc_sp(self,graph, source, dest): 
         pass
 
@@ -202,14 +202,13 @@ class Bellman_Ford(SPAlgorithm):
 class A_star(SPAlgorithm): 
 
     def __init__(self,h): 
-        # Store heuristic
-        self.h = h
         pass 
 
     # Override 
     def calc_sp(self, G, source, dest):
         pred = {} 
         dist = {} 
+        h = G.get_heuristic() 
         Q = min_heap.MinHeap([])
         nodes = list(G.adj.keys())
 

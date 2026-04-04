@@ -7,6 +7,7 @@ import timeit
 import numpy as np
 import csv
 import part3_4
+import os
 
 
 class DirectedWeightedGraph:
@@ -544,7 +545,15 @@ def mysteryExperiment():
 # ************* Reading the csv files *************************
 
 
-with open('data/london_stations.csv', mode='r', newline='', encoding='utf-8') as file:
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Construct the full path 
+# Was having issues with relative path
+file_path_1 = os.path.join(base_dir, 'data', 'london_stations.csv')
+file_path_2 = os.path.join(base_dir, 'data', 'london_connections.csv')
+
+
+with open(file_path_1, mode='r', newline='', encoding='utf-8') as file:
     csv_reader = csv.DictReader(file)
 
     size = sum(1 for row in file) - 1
@@ -557,7 +566,7 @@ with open('data/london_stations.csv', mode='r', newline='', encoding='utf-8') as
         g.add_node(int(row['id']),(float(row['latitude']),float(row['longitude'])))
     
 
-with open('data/london_connections.csv', mode='r', newline='', encoding='utf-8') as file:
+with open(file_path_2, mode='r', newline='', encoding='utf-8') as file:
     csv_reader = csv.DictReader(file)
     for row in csv_reader:
         g.add_edge(int(row['station1']),int(row['station2']),int(row['time']))
@@ -625,4 +634,201 @@ def experiment4():
     plt.legend()
     plt.show()
 
-experiment4()
+def part3_2(g): 
+
+    num_lines = 3
+    # Same lines: 
+    #Southgate (232) -> Manor house (160)
+    #South ruislip (239) -> North acton (181)
+    # Wimbledon (299) -> West brompton (287)
+
+    # On adjacent lines: 
+    # Adj pair 1: 
+    #  Hammersmith(110) -> Westbourne Park(283)
+    #  Hammersmith(110) -> Ladbroke grove(147) 
+    # Adj pair 2: 
+    #  Liverpool St(156) -> Euston Square(90)
+    #  Liverpool St(156) -> Great Portland St(104) 
+    # Adj pair 3: 
+    #  Ealing broadway(72) -> West Kensington(293)
+    #  Ealing broadway(72) -> Barons court(17)
+    num_adj_lines = 2 # Num of lines per adjacent (Will use to compute average)
+
+    # On lines which require several transfers (At least 2)
+    # Queen's Park (206) -> South kensington (236)
+    # Bank (13) -> Baker Street(110)
+    # Wimbledon(299) -> Bank(13)
+
+    # Store dict of pairs for same/adj/transfer lines
+    same_lines = {232: 160, 239: 181, 299: 287}
+    adj_lines = {110: [283,147], 156: [90,104], 72: [293,17] }
+    transfer_lines = {206: 236, 13: 110, 299: 13}
+
+    # Store total time
+    dijkstra_same_t = 0
+    dijkstra_adj_t = 0
+    dijkstra_transfer_t = 0
+
+    a_star_same_t = 0
+    a_star_adj_t = 0
+    a_star_transfer_t = 0
+
+    # Store total distancce
+    dijkstra_same_dist = 0
+    dijkstra_adj_dist = 0
+    dijkstra_transfer_dist = 0
+
+    a_star_same_dist = 0
+    a_star_adj_dist = 0
+    a_star_transfer_dist = 0
+
+    # Same lines computation 
+
+    for source in same_lines.keys(): 
+        # print(same_lines[source])
+        
+        # Dijkstra
+        start = timeit.default_timer()
+        ds = dijkstra(g,source)
+        end = timeit.default_timer() - start
+        dijkstra_same_t += end
+        dijkstra_same_dist += ds[same_lines[source]] # Add length of this path
+
+        # A_star
+        g.compute_heuristic(same_lines[source])
+        h = g.get_heuristic()
+
+        start = timeit.default_timer()
+        pred, path = a_star(g,source,same_lines[source],h)
+        end = timeit.default_timer() - start
+        a_star_same_t += end
+
+        # Compute a_star path length
+        for i in range(len(path) - 1):
+            u = path[i]
+            v = path[i+1]
+            a_star_same_dist += g.w(u, v)
+
+
+    dijkstra_same_dist /= num_lines # Get average total distance
+    dijkstra_same_t /= num_lines # Get average time
+
+    a_star_same_dist /= num_lines # Get average total distance
+    a_star_same_t /= num_lines # Get average time
+
+    # Get average for each of the pairs of lines 
+    # Then compute average of those averages 
+
+    
+    for source in adj_lines.keys(): 
+        # Reset stuff for every source
+        dijkstra_pair_avg_dist = 0
+        a_star_pair_avg_dist = 0 
+
+        dijkstra_pair_avg_t = 0
+        a_star_pair_avg_t = 0
+
+        # For each pair
+        for target in adj_lines[source]:
+            # Dijkstra
+            start = timeit.default_timer()
+            ds = dijkstra(g,source)
+            end = timeit.default_timer() - start
+            dijkstra_pair_avg_t += end
+            dijkstra_pair_avg_dist += ds[target] # Add length of this path
+
+            # A_star
+            g.compute_heuristic(target)
+            h = g.get_heuristic()
+
+            start = timeit.default_timer()
+            pred, path = a_star(g,source,target,h)
+            end = timeit.default_timer() - start
+            a_star_pair_avg_t += end
+
+            # Compute a_star path length
+            for i in range(len(path) - 1):
+                u = path[i]
+                v = path[i+1]
+                a_star_pair_avg_dist += g.w(u, v)
+
+        dijkstra_adj_dist += (dijkstra_pair_avg_dist / 2) # Compute average for this pair
+        dijkstra_adj_t += (dijkstra_pair_avg_t / 2) 
+
+        a_star_adj_dist += (a_star_pair_avg_dist / 2) 
+        a_star_adj_t += (a_star_pair_avg_t / 2)
+
+
+    dijkstra_adj_dist /= num_lines # Get average total distance
+    dijkstra_adj_t /= num_lines # Get average time
+
+    a_star_adj_dist /= num_lines # Get average total distance
+    a_star_adj_t /= num_lines # Get average time
+
+
+
+    # Transfer lines
+    for source in transfer_lines.keys(): 
+        
+        # Dijkstra
+        start = timeit.default_timer()
+        ds = dijkstra(g,source)
+        end = timeit.default_timer() - start
+        dijkstra_transfer_t += end
+        dijkstra_transfer_dist += ds[transfer_lines[source]] # Add length of this path
+
+        # A_star
+        g.compute_heuristic(transfer_lines[source])
+        h = g.get_heuristic()
+
+        start = timeit.default_timer()
+        pred, path = a_star(g,source,transfer_lines[source],h)
+        end = timeit.default_timer() - start
+        a_star_transfer_t += end
+
+        # Compute a_star path length
+        for i in range(len(path) - 1):
+            u = path[i]
+            v = path[i+1]
+            a_star_transfer_dist += g.w(u, v)
+
+
+    dijkstra_transfer_dist /= num_lines # Get average total distance
+    dijkstra_transfer_t /= num_lines # Get average time
+
+    a_star_transfer_dist /= num_lines # Get average total distance
+    a_star_transfer_t /= num_lines # Get average time
+
+    # For same source dijkstra will be the same
+
+    # Print results 
+
+    # Same line 
+    print("Same line data:")
+    print(f"Dijkstra Same line (weight): {round(dijkstra_same_dist,4)}")
+    print(f"Dijksttra Same line (runtime): {round(dijkstra_same_t * 1000,4)}ms")
+
+    print(f"A_star Same line (weight): {round(a_star_same_dist,4)}")
+    print(f"A_star Same line (runtime): {round(a_star_same_t * 1000,4)}ms")
+    print("\n")
+
+    # Adj line 
+    print("Adjacent line data:")
+    print(f"Dijkstra Adj line (weight): {round(dijkstra_adj_dist,4)}")
+    print(f"Dijksttra Adj line (runtime): {round(dijkstra_adj_t * 1000,4)}ms")
+
+    print(f"A_star Adj line (weight): {round(a_star_adj_dist,4)}")
+    print(f"A_star Adj line (runtime): {round(a_star_adj_t * 1000,4)}ms")
+    print("\n")
+
+    # Transfer lines
+    print("Transfer data:")
+    print(f"Dijkstra Transfer (weight): {round(dijkstra_transfer_dist,4)}")
+    print(f"Dijksttra Transfer (runtime): {round(dijkstra_transfer_t * 1000,4)}ms")
+
+    print(f"A_star Transfer (weight): {round(a_star_transfer_dist,4)}")
+    print(f"A_star Transfer (runtime): {round(a_star_transfer_t * 1000,4)}ms")
+
+
+
+part3_2(g)
